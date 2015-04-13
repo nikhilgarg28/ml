@@ -1,20 +1,25 @@
 from ml import loss
 
 import numpy as np
+from numpy import testing
 
 
 class TestL2(object):
     def __init__(self):
         self.l2 = loss.L2()
+        self.a = np.ones(3)
+        self.b = self.a + 1
 
     def test_loss(self):
-        # zero loss for perfect prediction
-        assert self.l2.get_loss(1, 1) == 0
+        # zero loss for perfect prediction, should work on both arrays & scalars
+        assert self.l2.get_loss(self.a, self.a) == 0
         assert self.l2.get_loss(13.1, 13.1) == 0
 
         # correct l2 loss otherwise
         assert self.l2.get_loss(3, 0) == 9
         assert self.l2.get_loss(0, 3) == 9
+        assert self.l2.get_loss(self.a, self.b) == 1
+        assert self.l2.get_loss(self.b, self.a) == 1
 
         assert self.l2.get_loss(5, 1) == 16
         assert self.l2.get_loss(5.7, 1.7) == 16
@@ -25,9 +30,23 @@ class TestL2(object):
         assert self.l2.get_gradient(1, 1) == 0
         assert self.l2.get_gradient(9, 9) == 0
 
+        # works for arrays too, returns array of same size
+        testing.assert_array_almost_equal(
+                self.l2.get_gradient(self.a, self.a), 
+                np.zeros(3)
+        )
+
         # correct gradient otherwise
         assert self.l2.get_gradient(9, 0) == 18
         assert self.l2.get_gradient(0, 9) == -18
+        testing.assert_array_almost_equal(
+                self.l2.get_gradient(self.a, self.b), 
+                np.array([-2, -2, -2])
+        )
+        testing.assert_array_almost_equal(
+                self.l2.get_gradient(self.b, self.a), 
+                np.array([2, 2, 2])
+        )
 
     def test_f0(self):
         Y = np.array([1, 1, 1])
