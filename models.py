@@ -36,7 +36,6 @@ class LinearRegression(Model):
             # gs is N sized 1d array containing loss fn gradients at each point
             gs = loss_fun.get_gradient(P, Y)
             G = np.dot(X.T, gs) / N
-            W = W - self._learn_rate * G
 
             # and we update our best model by moving opposite of gradient
             W = W - self._learn_rate * G
