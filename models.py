@@ -47,7 +47,7 @@ class _LinearRegression(Model):
         self._models = []
 
     def fit(self, X, Y, verbose=False):
-        self._computer_center_params(X)
+        self._compute_center_params(X)
         X = self._pre_process_input(X)
         N, F = X.shape
 
@@ -117,7 +117,7 @@ class _LinearRegression(Model):
         X_[:, :-1] = X
         return X_
 
-    def _computer_center_params(self, X):
+    def _compute_center_params(self, X):
         if self._normalize:
             self._means = np.mean(X, axis=0)
             self._scales = np.std(X, axis=0)
