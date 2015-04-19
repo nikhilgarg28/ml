@@ -21,3 +21,16 @@ class L2(Function):
 
     def get_f0(self, Y):
         return np.mean(Y)
+
+
+class Logistic(Function):
+    def get_loss(self, P, Y):
+        return Y * np.log(P) + (1 - Y) * np.log(1 - P)
+
+    def get_gradient(self, P, Y):
+        Z = P * (1 - P)
+        Z = np.where(np.abs(Z) < 1e-9, 1e-9, Z)
+        return (P - Y) / Z
+
+    def get_f0(self, Y):
+        return np.mean(Y)

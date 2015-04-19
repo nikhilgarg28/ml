@@ -3,10 +3,14 @@ from . import loss
 import numpy as np
 
 class Model(object):
-    pass
+    def fit(self, X, Y, *args, **kwargs):
+        raise NotImplementedError()
+
+    def predict(self, X, *args, **kwargs):
+        raise NotImplementedError()
 
 
-class LinearRegression(Model):
+class _LinearRegression(Model):
     def __init__(self, learn_rate, max_iter, loss_fun, normalize=True):
         """Linear Regression model based on gradient descent.
 
@@ -38,6 +42,10 @@ class LinearRegression(Model):
         # W represents the learnt model, we keep it 1D array
         self._W = None
 
+        # We also store all the models we learn along the way
+        # useful in plotting train/test errors as function of # of iterations
+        self._models = []
+
     def fit(self, X, Y, verbose=False):
         self._computer_center_params(X)
         X = self._pre_process_input(X)
@@ -46,6 +54,7 @@ class LinearRegression(Model):
 
         # initial guess of our hyperplane
         W = np.ones(F)
+        self._models.append(W)
 
         for i in range(self._max_iter):
             # single iteration of gradient descent
@@ -63,6 +72,7 @@ class LinearRegression(Model):
 
             # and we update our best model by moving opposite of gradient
             W = W - self._learn_rate * G
+            self._models.append(W)
 
         self._W = W
         if verbose:
@@ -73,9 +83,24 @@ class LinearRegression(Model):
                 print('Avg loss of the learnt model: %.3f' % avg_loss)
         return self
 
-    def predict(self, X):
+    def predict(self, X, model_iter=None):
+        """Predicts the regression output for X.
+
+        Parameters
+        ----------
+        X : numpy array
+        model_iter : int, optional, default None
+            If provided, the model corresponding to the given iteration of the
+            learning algorithm is used to predict.
+
+        """
         X = self._pre_process_input(X)
-        return self._predict(self._W, X)
+        if model_iter is None:
+            W = self._W
+        else:
+            W = self._models[model_iter]
+
+        return self._predict(W, X)
 
     def _pre_process_input(self, X):
         if self._normalize:
@@ -92,3 +117,9 @@ class LinearRegression(Model):
 
     def _predict(self, W, X):
         return np.dot(X, W)
+
+
+class LinearRegression(_LinearRegression):
+    def __init__(self, learn_rate, max_iter, normalize=True):
+        loss_fun = loss.L2()
+        super().__init__(learn_rate, max_iter, loss_fun, normalize=normalize)
