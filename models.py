@@ -50,7 +50,6 @@ class _LinearRegression(Model):
         self._computer_center_params(X)
         X = self._pre_process_input(X)
         N, F = X.shape
-        loss_fun = self._loss_fun
 
         # initial guess of our hyperplane
         W = np.ones(F)
@@ -63,11 +62,11 @@ class _LinearRegression(Model):
             P = self._predict(W, X)
 
             if verbose:
-                avg_loss = loss_fun.get_loss(P, Y)
+                avg_loss = self._get_loss(P, Y)
                 print('Avg loss after %d iterations: %.3f' % (i, avg_loss))
 
             # gs is N sized 1d array containing loss fn gradients at each point
-            gs = loss_fun.get_gradient(P, Y)
+            gs = self._get_gradient(P, Y)
             G = np.dot(X.T, gs) / N
 
             # and we update our best model by moving opposite of gradient
@@ -79,9 +78,17 @@ class _LinearRegression(Model):
                 print('-' * 30, 'DONE', '-' * 30)
                 print('Learnt linear model:', self._W)
                 P = self._predict(self._W, X)
-                avg_loss = loss_fun.get_loss(P, Y)
+                avg_loss = self._get_loss(P, Y)
                 print('Avg loss of the learnt model: %.3f' % avg_loss)
         return self
+
+    def _get_gradient(self, P, Y):
+        # for numeric stability reasons, we don't always use loss_fun's own
+        # gradient.
+        return P - Y
+
+    def _get_loss(self, P, Y):
+        return self._loss_fun.get_loss(P, Y)
 
     def predict(self, X, model_iter=None):
         """Predicts the regression output for X.
@@ -122,4 +129,10 @@ class _LinearRegression(Model):
 class LinearRegression(_LinearRegression):
     def __init__(self, learn_rate, max_iter, normalize=True):
         loss_fun = loss.L2()
+        super().__init__(learn_rate, max_iter, loss_fun, normalize=normalize)
+
+
+class LogisticRegression(_LinearRegression):
+    def __init__(self, learn_rate, max_iter, normalize=True):
+        loss_fun = loss.Log()
         super().__init__(learn_rate, max_iter, loss_fun, normalize=normalize)
