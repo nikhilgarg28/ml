@@ -66,10 +66,7 @@ class TestLog(object):
     def test_loss(self):
         assert self.lf.get_loss(0.3, 0) == -np.log(0.7)
         assert self.lf.get_loss(0.3, 1) == -np.log(0.3)
-        result = np.array([-2.22222222, 0, 0.95238095])
-        testing.assert_array_almost_equal(
-                self.lf.get_gradient(self.a, self.b), result
-        )
+        assert abs(self.lf.get_loss(self.a, self.b) - 1.70633504237) < 1e-6
 
     def test_gradient(self):
         # zero gradient at minima
