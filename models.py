@@ -136,3 +136,15 @@ class LogisticRegression(_LinearRegression):
     def __init__(self, learn_rate, max_iter, normalize=True):
         loss_fun = loss.Log()
         super().__init__(learn_rate, max_iter, loss_fun, normalize=normalize)
+
+    def _predict(self, W, X):
+        d = super()._predict(W, X)
+        return self._sigmoid(d)
+
+    def _sigmoid(self, d):
+        return (1. / (1 + np.exp(-d)))
+
+    def predict(self, X, model_iter=None):
+        d = super().predict(X, model_iter=model_iter)
+        # binarize the output
+        return np.where(d <= 0.5, 0, 1)
