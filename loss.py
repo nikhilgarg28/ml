@@ -23,9 +23,9 @@ class L2(Function):
         return np.mean(Y)
 
 
-class Logistic(Function):
+class Log(Function):
     def get_loss(self, P, Y):
-        return Y * np.log(P) + (1 - Y) * np.log(1 - P)
+        return - Y * np.log(P) - (1 - Y) * np.log(1 - P)
 
     def get_gradient(self, P, Y):
         Z = P * (1 - P)
