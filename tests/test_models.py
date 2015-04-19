@@ -34,23 +34,33 @@ class TestLinearRegression(object):
         dataset = load_boston()
         X = dataset.data
         Y = dataset.target
+        n_iter1 = 30
+        n_iter2 = 10
 
         # if we don't normalize the data, model diverges
-        lr = models.LinearRegression(self.alpha, self.n_iter, normalize=False)
+        lr = models.LinearRegression(self.alpha, n_iter1, normalize=False)
         lr.fit(X, Y)
-        P = lr.predict(X)
-        loss1 = self.loss_fn.get_loss(P, Y)
-        assert np.isnan(loss1)
+        P1 = lr.predict(X)
+        loss1 = self.loss_fn.get_loss(P1, Y)
+
+        P2 = lr.predict(X, model_iter=n_iter2)
+        loss2 = self.loss_fn.get_loss(P2, Y)
+        assert loss2 <= loss1
 
         # but if we do normalize, then nothing like this happens
         max_loss = 50
-        lr = models.LinearRegression(self.alpha, self.n_iter, normalize=True)
+        lr = models.LinearRegression(self.alpha, n_iter1, normalize=True)
         lr.fit(X, Y)
+        P3 = lr.predict(X)
+        loss3 = self.loss_fn.get_loss(P3, Y)
 
-        P = lr.predict(X)
-        loss2 = self.loss_fn.get_loss(P, Y)
-        assert not np.isnan(loss2)
-        assert loss2 <= max_loss
+        P4 = lr.predict(X, model_iter=n_iter2)
+        loss4 = self.loss_fn.get_loss(P4, Y)
+
+        assert loss4 > loss3
+
+        # and also that loss in absolute has become low
+        assert loss3 <= max_loss
 
     def test_predict_at_iter(self):
         n_iter1 = self.n_iter
