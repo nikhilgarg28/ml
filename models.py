@@ -3,15 +3,38 @@ from . import loss
 import numpy as np
 
 class Model(object):
+    def __init__(self, normalize=True, intercept=False):
+        # feature centering parameters
+        self._means = None
+        self._scales = None
+        self._normalize = normalize
+        self._intercept = intercept
+
     def fit(self, X, Y, *args, **kwargs):
         raise NotImplementedError()
 
     def predict(self, X, *args, **kwargs):
         raise NotImplementedError()
 
+    def _compute_center_params(self, X):
+        if self._normalize:
+            self._means = np.mean(X, axis=0)
+            self._scales = np.std(X, axis=0)
+
+    def _pre_process_input(self, X):
+        if self._normalize:
+            X = (X - self._means) / self._scales
+        if self._intercept:
+            N, F = X.shape
+            X_ = np.ones((N, F + 1))
+            X_[:, :-1] = X
+            X = X_
+        return X
+
 
 class _LinearRegression(Model):
-    def __init__(self, learn_rate, max_iter, loss_fun, normalize=True):
+    def __init__(self, learn_rate, max_iter, loss_fun, normalize=True,
+            intercept=True):
         """Linear Regression model based on gradient descent.
 
         Parameters
@@ -35,9 +58,6 @@ class _LinearRegression(Model):
         self._loss_fun = loss_fun
         self._normalize = normalize
 
-        # feature centering parameters
-        self._means = None
-        self._scales = None
 
         # W represents the learnt model, we keep it 1D array
         self._W = None
@@ -45,6 +65,8 @@ class _LinearRegression(Model):
         # We also store all the models we learn along the way
         # useful in plotting train/test errors as function of # of iterations
         self._models = []
+
+        super().__init__(normalize=normalize, intercept=intercept)
 
     def fit(self, X, Y, verbose=False):
         self._compute_center_params(X)
@@ -109,19 +131,6 @@ class _LinearRegression(Model):
 
         return self._predict(W, X)
 
-    def _pre_process_input(self, X):
-        if self._normalize:
-            X = (X - self._means) / self._scales
-        N, F = X.shape
-        X_ = np.ones((N, F + 1))
-        X_[:, :-1] = X
-        return X_
-
-    def _compute_center_params(self, X):
-        if self._normalize:
-            self._means = np.mean(X, axis=0)
-            self._scales = np.std(X, axis=0)
-
     def _predict(self, W, X):
         return np.dot(X, W)
 
@@ -133,9 +142,10 @@ class LinearRegression(_LinearRegression):
 
 
 class LogisticRegression(_LinearRegression):
-    def __init__(self, learn_rate, max_iter, normalize=True):
+    def __init__(self, learn_rate, max_iter, normalize=True, intercept=True):
         loss_fun = loss.Log()
-        super().__init__(learn_rate, max_iter, loss_fun, normalize=normalize)
+        super().__init__(learn_rate, max_iter, loss_fun, normalize=normalize,
+                intercept=intercept)
 
     def _predict(self, W, X):
         d = super()._predict(W, X)
