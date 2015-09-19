@@ -94,3 +94,25 @@ class TestLog(object):
         Y = np.array([1, 2, 3, 4])
         eq_(self.lf.get_f0(Y), 2.5)
 
+
+class TestZeroOne(object):
+    def __init__(self):
+        self.lf = loss.ZeroOne()
+        self.a = np.array([0, 1, 2])
+        self.b = np.array([2, 1, 0])
+
+    def test_loss(self):
+        eq_(self.lf.get_loss(1, 1), 0)
+        eq_(self.lf.get_loss(0, 1), 1)
+        eq_(self.lf.get_loss(0, 2), 1)
+
+        eq_(self.lf.get_loss(self.a, self.b), 2)
+
+    @raises(loss.UndefinedError)
+    def test_gradient(self):
+        self.lf.get_gradient(1, 1)
+
+
+    def test_f0(self):
+        eq_(self.lf.get_f0(np.array([0, 0, 1])), 0)
+        eq_(self.lf.get_f0(np.array([5, 5, 5])), 5)

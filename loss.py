@@ -34,3 +34,18 @@ class Log(Function):
 
     def get_f0(self, Y):
         return np.mean(Y)
+
+class ZeroOne(Function):
+    def get_loss(self, P, Y):
+        return np.sum(np.where(P == Y, 0, 1))
+
+    def get_gradient(self, P, Y):
+        raise UndefinedError()
+
+    def get_f0(self, Y):
+        counts = np.bincount(Y)
+        return np.argmax(counts)
+
+
+class UndefinedError(Exception):
+    pass
